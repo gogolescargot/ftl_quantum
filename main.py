@@ -6,7 +6,7 @@
 #    By: ggalon <ggalon@student.42lyon.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 15:20:26 by ggalon            #+#    #+#              #
-#    Updated: 2025/05/23 15:47:22 by ggalon           ###   ########.fr        #
+#    Updated: 2025/05/23 16:09:27 by ggalon           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -104,28 +104,17 @@ def oracle_balanced(circuit, input, output):
 	circuit.append(cirq.CNOT(input[2], output))
 	circuit.append(cirq.X.on_each(input))
 
-def grover(elements, find):
-	size = len(elements)
-	if size < 2 or (size & (size - 1)) != 0:
-		raise ValueError(f"Error: Number of elements ({size}) must be a power of two and at least 2.")
-	
-	try:
-		target_index = elements.index(find)
-	except ValueError:
-		raise ValueError(f"Error: Element '{find}' not found in elements list: {elements}")
-
-	n_qbits = int(math.log2(size)) 
-
-	qbits = cirq.LineQubit.range(n_qbits)
+def grover(Y, oracle):
+	qbits = cirq.LineQubit.range(Y)
 	
 	circuit = cirq.Circuit()
 
 	circuit.append(cirq.H.on_each(*qbits))
 
-	num_iterations = math.floor((math.pi / 4) * math.sqrt(size))
+	num_iterations = math.floor((math.pi / 4) * Y)
 
 	for _ in range(num_iterations):
-		grover_oracle(circuit, qbits, target_index)
+		oracle(circuit, qbits)
 		diffuser(circuit, qbits)
 
 	circuit.append(cirq.measure(*qbits))
@@ -139,16 +128,10 @@ def grover(elements, find):
 	cirq.plot_state_histogram(result)
 	plt.show()
 
-def grover_oracle(circuit, qbits, target_index):
-	n = len(qbits)
-	print(target_index)
-	for i in range(n):
-		if not (target_index >> i) & 1:
-			circuit.append(cirq.X(qbits[i]))
-	circuit.append(cirq.Z(qbits[-1]).controlled_by(*qbits[:-1]))
-	for i in range(n):
-		if not (target_index >> i) & 1:
-			circuit.append(cirq.X(qbits[i]))
+def grover_oracle(circuit, qbits):
+	circuit.append(cirq.H(qbits[-1]))
+	circuit.append(cirq.CCNOT(qbits[0], qbits[1], qbits[2]))
+	circuit.append(cirq.H(qbits[-1]))
 
 def diffuser(circuit, qbits):
 	circuit.append(cirq.H.on_each(*qbits))
@@ -163,7 +146,7 @@ def main():
 	# noise()
 	# deutsch_jozsa(oracle_constant)
 	# deutsch_jozsa(oracle_balanced)
-	grover([0, 1, 2, 3, 4, 5, 6, 7], 3)
+	grover(3, grover_oracle)
 
 if __name__ == "__main__":
 	main()
