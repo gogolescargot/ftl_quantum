@@ -6,7 +6,7 @@
 #    By: ggalon <ggalon@student.42lyon.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/05/09 15:20:26 by ggalon            #+#    #+#              #
-#    Updated: 2025/05/23 16:09:27 by ggalon           ###   ########.fr        #
+#    Updated: 2025/05/23 16:12:12 by ggalon           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -111,9 +111,7 @@ def grover(Y, oracle):
 
 	circuit.append(cirq.H.on_each(*qbits))
 
-	num_iterations = math.floor((math.pi / 4) * Y)
-
-	for _ in range(num_iterations):
+	for _ in range(math.floor((math.pi / 4) * Y)):
 		oracle(circuit, qbits)
 		diffuser(circuit, qbits)
 
