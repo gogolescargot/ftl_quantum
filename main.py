@@ -1,5 +1,6 @@
 import cirq
 import math
+import signal
 import matplotlib.pyplot as plt
 
 SHOT = 500
@@ -105,7 +106,7 @@ def grover(Y, oracle):
 
     circuit.append(cirq.H.on_each(*qbits))
 
-    for _ in range(math.floor((math.pi / 4) * Y)):
+    for _ in range(math.floor((math.pi / 4) * math.sqrt(2**Y))):
         oracle(circuit, qbits)
         diffuser(circuit, qbits)
 
@@ -136,12 +137,22 @@ def diffuser(circuit, qbits):
 
 
 def main():
-    # superposition()
-    # entanglement()
-    # noise()
-    # deutsch_jozsa(oracle_constant)
-    # deutsch_jozsa(oracle_balanced)
-    grover(3, grover_oracle)
+    try:
+        signal.signal(
+            signal.SIGINT,
+            lambda *_: (
+                print("\033[2Dftl_quantum: CTRL+C sent by user."),
+                exit(1),
+            ),
+        )
+        # superposition()
+        # entanglement()
+        # noise()
+        # deutsch_jozsa(oracle_constant)
+        # deutsch_jozsa(oracle_balanced)
+        grover(3, grover_oracle)
+    except Exception as e:
+        print(f"ftl_quantum: An error occurred: {e}")
 
 
 if __name__ == "__main__":
