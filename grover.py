@@ -38,6 +38,55 @@ def grover_oracle(circuit, qbits):
     circuit.append(cirq.H(qbits[-1]))
 
 
+# def grover_oracle_1(circuit, qbits): #01
+#     theta = math.pi
+
+#     # équivalent de :
+#     # RY(theta/2) -- CX -- RY(-theta/2) -- CX
+#     circuit.append(cirq.ry(theta / 2)(qbits[1]))
+#     circuit.append(cirq.CNOT(qbits[0], qbits[1]))
+#     circuit.append(cirq.ry(-theta / 2)(qbits[1]))
+#     circuit.append(cirq.CNOT(qbits[0], qbits[1]))
+
+# def grover_oracle_2(circuit, qbits): #111
+#     # équivalent exact de :
+#     # H(2) -> CCX(0,1,2) -> H(2)
+
+#     circuit.append(cirq.H(qbits[2]))
+#     circuit.append(cirq.CCNOT(qbits[0], qbits[1], qbits[2]))
+#     circuit.append(cirq.H(qbits[2]))
+
+# def grover_oracle_3(circuit, qbits): #110
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+#     # CZ(1,2)
+#     circuit.append(cirq.CZ(qbits[1], qbits[2]))
+
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+# def grover_oracle_4(circuit, qbits): #1111
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+#     # CCX(1,3,2)
+#     circuit.append(cirq.CCNOT(qbits[1], qbits[3], qbits[2]))
+
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+# def grover_oracle_5(circuit, qbits): #01111 11111
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+#     # CCX(1,3,2)
+#     circuit.append(cirq.CCNOT(qbits[1], qbits[3], qbits[2]))
+
+#     # CH(0,2)
+#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+
+
 def diffuser(circuit, qbits):
     circuit.append(cirq.H.on_each(*qbits))
     circuit.append(cirq.X.on_each(*qbits))

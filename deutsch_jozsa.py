@@ -1,6 +1,7 @@
 import cirq
 import signal
 import matplotlib.pyplot as plt
+# import numpy as np
 
 SHOT = 500
 
@@ -29,6 +30,40 @@ def deutsch_jozsa(oracle):
     plt.show()
 
 
+# def oracle_balanced_random():
+#     b = np.random.randint(1, 2**3)
+#     b_str = format(b, '03b')
+#     print(f"Balanced oracle with b = {b_str}")
+
+#     def oracle(circuit, inputs, output):
+#         for i, bit in enumerate(b_str):
+#             if bit == '1':
+#                 circuit.append(cirq.X(inputs[i]))
+
+#         for q in inputs:
+#             circuit.append(cirq.CNOT(q, output))
+
+#         for i, bit in enumerate(b_str):
+#             if bit == '1':
+#                 circuit.append(cirq.X(inputs[i]))
+
+#     return oracle
+
+# def oracle_constant_random():
+#     """
+#     Oracle constant aléatoire pour Deutsch-Jozsa
+#     f(x) = 0 ou f(x) = 1
+#     """
+#     value = np.random.randint(2)
+#     print(f"Constant oracle with f(x) = {value}")
+
+#     def oracle(circuit, _, output):
+#         if value == 1:
+#             circuit.append(cirq.X(output))
+
+#     return oracle
+
+
 def oracle_constant(circuit, _, output):
     circuit.append(cirq.X(output))
 
@@ -50,6 +85,8 @@ def main():
                 exit(1),
             ),
         )
+        # deutsch_jozsa(oracle_constant_random)
+        # oracle = oracle_constant_random()
         deutsch_jozsa(oracle_constant)
         deutsch_jozsa(oracle_balanced)
     except Exception as e:
