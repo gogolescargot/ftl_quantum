@@ -7,6 +7,9 @@ SHOT = 500
 
 
 def grover(Y, oracle):
+    if Y < 2:
+        raise ValueError("Number of qubits must be at least 2.")
+
     qbits = cirq.LineQubit.range(Y)
 
     circuit = cirq.Circuit()
