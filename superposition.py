@@ -1,22 +1,26 @@
-import cirq
 import signal
 import matplotlib.pyplot as plt
+
+from qiskit import QuantumCircuit, transpile
+from qiskit.visualization import plot_histogram
+from qiskit_aer import AerSimulator
 
 SHOT = 500
 
 
 def superposition():
-    qubit = cirq.GridQubit(0, 0)
+    qc = QuantumCircuit(1, 1)
+    qc.h(0)
+    qc.measure(0, 0)
 
-    circuit = cirq.Circuit(cirq.H(qubit), cirq.measure(qubit))
+    simulator = AerSimulator()
+    compiled = transpile(qc, simulator)
+    job = simulator.run(compiled, shots=SHOT)
 
-    print("Circuit: ")
-    print(circuit)
-
-    simulator = cirq.Simulator()
-    result = simulator.run(circuit, repetitions=SHOT)
-
-    cirq.plot_state_histogram(result)
+    result = job.result()
+    counts = result.get_counts()
+    print(f"Circuit:\n{qc}")
+    plot_histogram(counts, title="Superposition")
     plt.show()
 
 

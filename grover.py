@@ -1,98 +1,153 @@
-import cirq
 import math
 import signal
 import matplotlib.pyplot as plt
 
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import AerSimulator
+from qiskit.visualization import plot_histogram
+
 SHOT = 500
 
 
-def grover(Y, oracle):
+def grover(Y, oracle_fn):
     if Y < 2:
         raise ValueError("Number of qubits must be at least 2.")
 
-    qbits = cirq.LineQubit.range(Y)
+    qc = QuantumCircuit(Y, Y)
+    for q in range(Y):
+        qc.h(q)
 
-    circuit = cirq.Circuit()
+    oracle = oracle_fn(Y)
+    print(f"Oracle:\n{oracle}")
 
-    circuit.append(cirq.H.on_each(*qbits))
+    diffuser = diffuser_fn(Y)
 
-    for _ in range(math.floor((math.pi / 4) * math.sqrt(2**Y))):
-        oracle(circuit, qbits)
-        diffuser(circuit, qbits)
+    iterations = math.floor((math.pi / 4) * math.sqrt(2**Y))
+    for _ in range(iterations):
+        qc.append(oracle, range(Y))
+        qc.compose(diffuser, range(Y), inplace=True)
 
-    circuit.append(cirq.measure(*qbits))
+    qc.measure(list(range(Y)), list(range(Y)))
 
-    print("Circuit:")
-    print(circuit)
+    print(f"Circuit:\n{qc}")
 
-    simulator = cirq.Simulator()
-    result = simulator.run(circuit, repetitions=SHOT)
+    simulator = AerSimulator()
+    tqc = transpile(qc, simulator)
+    job = simulator.run(tqc, shots=SHOT)
 
-    cirq.plot_state_histogram(result)
+    result = job.result()
+    counts = result.get_counts()
+
+    plot_histogram(counts, title="Grover")
     plt.show()
 
 
-def grover_oracle(circuit, qbits):
-    circuit.append(cirq.H(qbits[-1]))
-    circuit.append(cirq.CCNOT(qbits[0], qbits[1], qbits[2]))
-    circuit.append(cirq.H(qbits[-1]))
+def grover_oracle(nqubits: int):  # 111
+    if nqubits != 3:
+        raise ValueError("Number of qubits must be 3 for this oracle.")
+
+    oracle = QuantumCircuit(nqubits, name="oracle")
+
+    oracle.h(nqubits - 1)
+    oracle.ccx(0, 1, 2)
+    oracle.h(nqubits - 1)
+
+    return oracle
 
 
-# def grover_oracle_1(circuit, qbits): #01
+# def grover_oracle_1(nqubits: int):  # 01
+#     if nqubits != 2:
+#         raise ValueError("Number of qubits must be 2 for this oracle.")
+
+#     oracle = QuantumCircuit(nqubits, name="oracle_1")
+
 #     theta = math.pi
+#     oracle.ry(theta / 2, 1)
+#     oracle.cx(0, 1)
+#     oracle.ry(-theta / 2, 1)
+#     oracle.cx(0, 1)
 
-#     # équivalent de :
-#     # RY(theta/2) -- CX -- RY(-theta/2) -- CX
-#     circuit.append(cirq.ry(theta / 2)(qbits[1]))
-#     circuit.append(cirq.CNOT(qbits[0], qbits[1]))
-#     circuit.append(cirq.ry(-theta / 2)(qbits[1]))
-#     circuit.append(cirq.CNOT(qbits[0], qbits[1]))
-
-# def grover_oracle_2(circuit, qbits): #111
-#     # équivalent exact de :
-#     # H(2) -> CCX(0,1,2) -> H(2)
-
-#     circuit.append(cirq.H(qbits[2]))
-#     circuit.append(cirq.CCNOT(qbits[0], qbits[1], qbits[2]))
-#     circuit.append(cirq.H(qbits[2]))
-
-# def grover_oracle_3(circuit, qbits): #110
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
-
-#     # CZ(1,2)
-#     circuit.append(cirq.CZ(qbits[1], qbits[2]))
-
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
-
-# def grover_oracle_4(circuit, qbits): #1111
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
-
-#     # CCX(1,3,2)
-#     circuit.append(cirq.CCNOT(qbits[1], qbits[3], qbits[2]))
-
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
-
-# def grover_oracle_5(circuit, qbits): #01111 11111
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
-
-#     # CCX(1,3,2)
-#     circuit.append(cirq.CCNOT(qbits[1], qbits[3], qbits[2]))
-
-#     # CH(0,2)
-#     circuit.append(cirq.H(qbits[2]).controlled_by(qbits[0]))
+#     return oracle
 
 
-def diffuser(circuit, qbits):
-    circuit.append(cirq.H.on_each(*qbits))
-    circuit.append(cirq.X.on_each(*qbits))
-    circuit.append(cirq.Z(qbits[-1]).controlled_by(*qbits[:-1]))
-    circuit.append(cirq.X.on_each(*qbits))
-    circuit.append(cirq.H.on_each(*qbits))
+# def grover_oracle_2(nqubits: int):  # 111
+#     if nqubits != 3:
+#         raise ValueError("Number of qubits must be 3 for this oracle.")
+
+#     oracle = QuantumCircuit(nqubits, name="oracle_2")
+
+#     oracle.h(2)
+#     oracle.ccx(0, 1, 2)
+#     oracle.h(2)
+
+#     return oracle
+
+
+# def grover_oracle_3(nqubits: int):  # 110
+#     if nqubits != 3:
+#         raise ValueError("Number of qubits must be 3 for this oracle.")
+
+#     oracle = QuantumCircuit(nqubits, name="oracle_3")
+
+#     oracle.ch(0, 2)
+#     oracle.cz(1, 2)
+#     oracle.ch(0, 2)
+
+#     return oracle
+
+
+# def grover_oracle_4(nqubits: int):  # 1111
+#     if nqubits != 4:
+#         raise ValueError("Number of qubits must be 4 for this oracle.")
+
+#     oracle = QuantumCircuit(nqubits, name="oracle_4")
+
+#     oracle.ch(0, 2)
+#     oracle.ccx(1, 3, 2)
+#     oracle.ch(0, 2)
+
+#     return oracle
+
+
+# def grover_oracle_5(nqubits: int):  # 01111 11111
+#     if nqubits != 5:
+#         raise ValueError("Number of qubits must be 5 for this oracle.")
+
+#     oracle = QuantumCircuit(nqubits, name="oracle_5")
+
+#     oracle.ch(0, 2)
+#     oracle.ccx(1, 3, 2)
+#     oracle.ch(0, 2)
+
+#     return oracle
+
+
+def diffuser_fn(nqubits: int):
+    diffuser = QuantumCircuit(nqubits, name="diffuser")
+    controls = list(range(nqubits - 1))
+    target = nqubits - 1
+
+    for q in range(nqubits):
+        diffuser.h(q)
+    for q in range(nqubits):
+        diffuser.x(q)
+
+    diffuser.h(target)
+    if len(controls) == 0:
+        diffuser.z(target)
+    elif len(controls) == 1:
+        diffuser.cx(controls[0], target)
+    elif len(controls) == 2:
+        diffuser.ccx(controls[0], controls[1], target)
+    else:
+        diffuser.mcx(controls, target)
+    diffuser.h(target)
+    for q in range(nqubits):
+        diffuser.x(q)
+    for q in range(nqubits):
+        diffuser.h(q)
+
+    return diffuser
 
 
 def main():
@@ -105,6 +160,11 @@ def main():
             ),
         )
         grover(3, grover_oracle)
+        # grover(2, grover_oracle_1)
+        # grover(3, grover_oracle_2)
+        # grover(3, grover_oracle_3)
+        # grover(4, grover_oracle_4)
+        # grover(5, grover_oracle_5)
     except Exception as e:
         print(f"ftl_quantum: An error occurred: {e}")
 

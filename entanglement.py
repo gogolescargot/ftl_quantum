@@ -1,26 +1,28 @@
-import cirq
 import signal
 import matplotlib.pyplot as plt
+
+from qiskit import QuantumCircuit, transpile
+from qiskit.visualization import plot_histogram
+from qiskit_aer import AerSimulator
 
 SHOT = 500
 
 
 def entanglement():
-    q0, q1 = cirq.LineQubit.range(2)
+    qc = QuantumCircuit(2, 2)
+    qc.h(0)
+    qc.cx(0, 1)
+    qc.measure([0, 1], [0, 1])
 
-    circuit = cirq.Circuit(
-        cirq.H(q0),
-        cirq.CNOT(q0, q1),
-        cirq.measure(q0),
-        cirq.measure(q1),
-    )
-    print("Circuit: ")
-    print(circuit)
+    simulator = AerSimulator()
+    compiled = transpile(qc, simulator)
+    job = simulator.run(compiled, shots=SHOT)
 
-    simulator = cirq.Simulator()
-    result = simulator.run(circuit, repetitions=SHOT)
+    result = job.result()
+    counts = result.get_counts()
 
-    cirq.plot_state_histogram(result, tick_label=["00", "01", "10", "11"])
+    print(f"Circuit:\n{qc}")
+    plot_histogram(counts, title="Entanglement")
     plt.show()
 
 
