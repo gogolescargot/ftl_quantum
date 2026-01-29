@@ -25,6 +25,8 @@ def entanglement():
     plot_histogram(counts, title="Entanglement")
     plt.show()
 
+    return counts
+
 
 def main():
     try:

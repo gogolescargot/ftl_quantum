@@ -23,6 +23,8 @@ def superposition():
     plot_histogram(counts, title="Superposition")
     plt.show()
 
+    return counts
+
 
 def main():
     try:

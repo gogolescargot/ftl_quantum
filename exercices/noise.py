@@ -41,6 +41,8 @@ def noise():
     plot_histogram(counts, title=f"Noise p={NOISE}")
     plt.show()
 
+    return counts
+
 
 def main():
     try:
